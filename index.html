@@ -3,356 +3,275 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Code Bomb — Neo (v2)</title>
+<title>Code Bomb — Neo (Wizard)</title>
 <style>
   :root{
-    --bg1:#050612; --bg2:#090b1e;
-    --panel:#0d1027; --panel2:#12163a;
-    --text:#e6f7ff; --muted:#9fe3ff;
-    --cyan:#00e5ff; --magenta:#ff3dff; --green:#00ffa3;
-    --border:#1b2154;
-    --glow-cyan: 0 0 12px rgba(0,229,255,.45), 0 0 28px rgba(0,229,255,.25);
-    --glow-mag: 0 0 12px rgba(255,61,255,.45), 0 0 28px rgba(255,61,255,.25);
-    --glow-green: 0 0 12px rgba(0,255,163,.45), 0 0 28px rgba(0,255,163,.25);
+    --bg1:#050612; --bg2:#090b1e; --panel:#0d1027; --panel2:#12163a; --text:#e6f7ff; --muted:#9fe3ff;
+    --cyan:#00e5ff; --magenta:#ff3dff; --green:#00ffa3; --border:#1b2154;
+    --glow-cyan:0 0 12px rgba(0,229,255,.45),0 0 28px rgba(0,229,255,.25);
+    --glow-mag:0 0 12px rgba(255,61,255,.45),0 0 28px rgba(255,61,255,.25);
+    --glow-green:0 0 12px rgba(0,255,163,.45),0 0 28px rgba(0,255,163,.25);
   }
-  *{box-sizing:border-box}
-  html,body{height:100%}
+  *{box-sizing:border-box} html,body{height:100%}
   body{
-    margin:0; color:var(--text);
-    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    margin:0;color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
     background:
       radial-gradient(1200px 800px at 70% -10%, #15205a 0, transparent 60%),
       radial-gradient(900px 600px at 0% 110%, #3a105a 0, transparent 60%),
       linear-gradient(180deg,var(--bg1),var(--bg2));
-    display:flex; align-items:center; justify-content:center; overflow:hidden;
+    display:flex;align-items:center;justify-content:center;overflow:hidden
   }
-  .wrap{
-    width:min(1100px,96vw); height:min(760px,94vh); position:relative;
-    border:1px solid var(--border); border-radius:16px;
-    background:linear-gradient(180deg, rgba(15,18,45,.92), rgba(5,7,20,.92));
-    box-shadow:0 20px 60px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.03);
-    overflow:hidden;
-  }
-  header{
-    position:absolute; inset:12px 12px auto 12px; z-index:3; display:flex; gap:10px; align-items:center; justify-content:space-between;
-  }
-  .hud{display:flex;gap:10px;flex-wrap:wrap}
-  .stat{
-    padding:.5rem .7rem; background:linear-gradient(180deg, rgba(18,22,58,.8), rgba(10,12,34,.8));
-    border:1px solid var(--border); border-radius:12px; font-variant-numeric:tabular-nums;
-    box-shadow: var(--glow-cyan);
-  }
-  .btn{
-    appearance:none; border:1px solid var(--border);
-    background:linear-gradient(180deg, rgba(25,31,84,.9), rgba(16,18,48,.9));
-    color:var(--text); border-radius:12px; padding:.65rem 1rem; cursor:pointer; font-weight:800; letter-spacing:.02em;
-    transition:transform .06s ease, box-shadow .2s ease, border-color .2s ease;
-  }
-  .btn:hover{ transform:translateY(-1px); box-shadow: var(--glow-mag); border-color:#3340aa; }
-  .btn.ghost{ background:transparent; box-shadow:var(--glow-cyan) inset; }
-  main{
-    position:absolute; inset:72px 12px 88px 12px; overflow:auto;
-    border:1px solid var(--border); border-radius:12px;
-    background:linear-gradient(180deg, rgba(10,12,28,.55), rgba(6,8,20,.55));
-    padding:16px;
-  }
-  .grid{display:grid; grid-template-columns: 1fr; gap:12px}
-  .card{
-    background:linear-gradient(180deg, rgba(22,26,72,.96), rgba(12,14,38,.96));
-    border:1px solid var(--border); border-radius:14px; padding:14px;
-    box-shadow: 0 0 0 1px rgba(255,255,255,.02), 0 14px 40px rgba(0,0,0,.25);
-  }
-  .title{margin:.1rem 0 .5rem; font-size:20px; text-shadow: var(--glow-mag); color:#eaf1ff}
-  .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
-  .code-slots{display:flex; gap:10px; flex-wrap:wrap}
-  .slot{
-    min-width:72px; height:62px; display:grid; place-items:center; font-size:22px; font-weight:900;
-    background:linear-gradient(180deg, #0b0f26, #070a1b);
-    border:1px solid #25307a; border-radius:12px; color:#cfeaff;
-    box-shadow: inset 0 0 0 1px rgba(255,255,255,.03), 0 10px 26px rgba(0,0,0,.35);
-    padding:0 .5rem;
-  }
-  .slot.found{border-color:#21cfa1; color:#b3ffe7; box-shadow: var(--glow-green), inset 0 0 0 1px rgba(255,255,255,.06)}
-  .clue{color:var(--muted); font-size:15px}
-  .input-row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
-  input[type="number"], input[type="text"]{
-    width:120px; padding:.6rem .65rem; background:linear-gradient(180deg,#070a1b,#0b0f26);
-    color:var(--text); border:1px solid #2a3688; border-radius:12px; font-weight:700;
-    box-shadow: inset var(--glow-cyan);
-  }
-  .ok{color:var(--green)} .ko{color:#ff4d6d}
-  footer{
-    position:absolute; inset:auto 12px 12px 12px; z-index:3; display:flex; gap:12px; align-items:center; justify-content:space-between;
-  }
-  #rewards{display:flex; gap:10px; flex-wrap:wrap}
-  .badge{padding:.4rem .65rem; border-radius:999px; background:linear-gradient(180deg,#070a1b,#0b0f26); border:1px solid #2a3688; font-size:13px; box-shadow: inset var(--glow-mag)}
-  .badge.on{background:rgba(0,255,163,.12); border-color:#1fbf92; color:var(--green); box-shadow: var(--glow-green) inset}
-  dialog::backdrop{background:rgba(0,0,0,.45);}
-  @media (max-width:700px){
-    .slot{min-width:64px;height:58px}
-    input[type="number"], input[type="text"]{width:110px}
-  }
+  .wrap{width:min(520px,94vw);height:min(760px,96vh);position:relative;border:1px solid var(--border);border-radius:16px;
+    background:linear-gradient(180deg,rgba(15,18,45,.92),rgba(5,7,20,.92));box-shadow:0 20px 60px rgba(0,0,0,.45),inset 0 0 0 1px rgba(255,255,255,.03);overflow:hidden}
+  header{position:absolute;left:12px;right:12px;top:12px;z-index:3}
+  .hud{display:flex;gap:8px;flex-wrap:wrap;justify-content:space-between}
+  .chip{padding:.45rem .6rem;border:1px solid var(--border);border-radius:999px;background:linear-gradient(180deg,rgba(18,22,58,.8),rgba(10,12,34,.8));box-shadow:var(--glow-cyan);font-variant-numeric:tabular-nums}
+  main{position:absolute;inset:72px 12px 80px 12px;display:grid;place-items:center}
+  .card{width:100%;max-width:460px;background:linear-gradient(180deg,rgba(22,26,72,.96),rgba(12,14,38,.96));border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:0 14px 40px rgba(0,0,0,.25)}
+  h1{margin:.2rem 0 .6rem;font-size:22px;text-align:center;text-shadow:var(--glow-mag)}
+  .muted{color:var(--muted);text-align:center}
+  .btn{appearance:none;border:1px solid var(--border);background:linear-gradient(180deg,rgba(25,31,84,.9),rgba(16,18,48,.9));color:var(--text);border-radius:12px;padding:.7rem 1rem;font-weight:800;letter-spacing:.02em;cursor:pointer;width:100%}
+  .btn:hover{box-shadow:var(--glow-mag)}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .grid3{display:grid;grid-template-columns:1fr;gap:10px}
+  .level{display:flex;gap:10px}
+  .level .btn{flex:1}
+  .stepper{display:flex;gap:6px;justify-content:center;margin:.4rem 0}
+  .dot{width:10px;height:10px;border-radius:50%;background:#18204e;border:1px solid #2a3488}
+  .dot.on{background:#1fe3c2;box-shadow:var(--glow-green)}
+  .expr{font-size:22px;text-align:center;margin:.4rem 0 .2rem}
+  .inprow{display:flex;gap:8px;align-items:center;justify-content:center}
+  input[type="number"]{width:160px;padding:.65rem .7rem;border-radius:12px;border:1px solid #2a3688;background:linear-gradient(180deg,#070a1b,#0b0f26);color:var(--text);font-weight:800;text-align:center;box-shadow:inset var(--glow-cyan)}
+  .ok{color:var(--green);text-align:center;margin-top:.3rem}
+  .ko{color:#ff4d6d;text-align:center;margin-top:.3rem}
+  footer{position:absolute;left:12px;right:12px;bottom:12px;display:flex;justify-content:space-between;align-items:center}
+  .ghost{background:transparent;box-shadow:var(--glow-cyan) inset}
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <div class="hud">
-        <div class="stat">⏱️ Temps: <b id="time">00:30</b></div>
-        <div class="stat">🎯 Niveau: <b id="level">-</b></div>
-        <div class="stat">⭐ Points: <b id="points">0</b></div>
-        <div class="stat">🧩 Avancée: <b id="progress">0</b></div>
-      </div>
-      <div class="hud">
-        <button class="btn" id="helpBtn">❓ Règles</button>
-        <button class="btn" id="restartBtn">🔁 Recommencer</button>
-      </div>
-    </header>
-
-    <main>
-      <div class="grid">
-        <div class="card">
-          <div class="title">Choisir un tournoi</div>
-          <div class="row">
-            <button class="btn" data-mode="easy">Niveau 1 — 3 chiffres • 30 s</button>
-            <button class="btn" data-mode="med">Niveau 2 — 5 chiffres • 60 s</button>
-            <button class="btn" data-mode="hard">Niveau 3 — 10 chiffres • 120 s</button>
-          </div>
-          <p class="clue" style="margin:.4rem 0 0">Quitter l’écran (changer d’onglet/app) = <b>défaite immédiate</b>.</p>
-        </div>
-
-        <div class="card" id="gameCard" style="display:none">
-          <div class="title">Désamorce la bombe (résultat exact)</div>
-          <div class="row" style="justify-content:space-between">
-            <div class="code-slots" id="slots"></div>
-            <div class="row">
-              <div class="badge" id="status">En cours...</div>
-            </div>
-          </div>
-          <hr style="border:none;border-top:1px solid #26307a; opacity:.6; margin:10px 0">
-          <div id="cluesArea"></div>
-        </div>
-
-        <div class="card">
-          <div class="title">Récompenses</div>
-          <div id="rewards">
-            <span class="badge" data-need="500">🎖️ 500 pts</span>
-            <span class="badge" data-need="1500">🏅 1500 pts</span>
-            <span class="badge" data-need="5000">🏆 5000 pts</span>
-          </div>
-          <p class="clue">Points : +1/s pendant la partie et +10 par chiffre correct. (Cumulés & sauvegardés en local.)</p>
-        </div>
-      </div>
-    </main>
-
-    <footer>
-      <div class="row">
-        <button class="btn ghost" id="copyCodeBtn" disabled>📋 Copier le code</button>
-        <button class="btn" id="revealBtn" disabled>👀 Révéler (démo)</button>
-      </div>
-      <div class="clue">Ne quitte pas l’écran…</div>
-    </footer>
-  </div>
-
-  <!-- Aide -->
-  <dialog id="help" style="max-width:640px;width:92%;border:1px solid #26307a;border-radius:12px;background:linear-gradient(180deg,rgba(22,26,72,.98),rgba(12,14,38,.98));color:var(--text)">
-    <div style="padding:14px">
-      <h3 style="margin:.2rem 0 .4rem;text-shadow:var(--glow-cyan)">Règles</h3>
-      <ul>
-        <li>Résous les calculs et entre le <b>résultat exact</b>.</li>
-        <li>Durées : 30s (N1) • 60s (N2) • 120s (N3).</li>
-        <li>Si tu quittes l’écran (app/onglet), tu <b>perds</b> la partie.</li>
-        <li>Points : +1/s +10 par chiffre correct. Récompenses à 500 / 1500 / 5000.</li>
-      </ul>
-      <div class="row" style="justify-content:flex-end"><button class="btn" id="closeHelp">OK</button></div>
+<div class="wrap" role="application" aria-label="Code Bomb — étapes">
+  <header>
+    <div class="hud">
+      <div class="chip">⏱️ <b id="time">00:30</b></div>
+      <div class="chip">🎯 <b id="level">-</b></div>
+      <div class="chip">⭐ <b id="points">0</b></div>
+      <div class="chip">🧩 <b id="progress">0/0</b></div>
     </div>
-  </dialog>
+  </header>
+
+  <main>
+    <!-- Étape 0 : choix niveau -->
+    <section class="card" id="screen-level">
+      <h1>Code Bomb</h1>
+      <p class="muted" style="margin-bottom:.8rem">Résous chaque calcul (résultat exact). Quitter l’écran = défaite immédiate.</p>
+      <div class="level">
+        <button class="btn" data-mode="easy">Niveau 1 — 3 chiffres • 30 s</button>
+        <button class="btn" data-mode="med">Niveau 2 — 5 chiffres • 60 s</button>
+        <button class="btn" data-mode="hard">Niveau 3 — 10 chiffres • 120 s</button>
+      </div>
+    </section>
+
+    <!-- Étape jeu : une énigme à la fois -->
+    <section class="card" id="screen-play" style="display:none">
+      <div class="stepper" id="dots"></div>
+      <div class="expr" id="expr">—</div>
+      <div class="inprow">
+        <input id="answer" type="number" inputmode="numeric" placeholder="Résultat exact">
+      </div>
+      <div id="feedback" class="muted" aria-live="polite"></div>
+      <div class="grid3" style="margin-top:10px">
+        <button id="validate" class="btn">Valider</button>
+        <button id="next" class="btn" style="display:none">Suivant</button>
+      </div>
+    </section>
+
+    <!-- Étape fin -->
+    <section class="card" id="screen-end" style="display:none">
+      <h1 id="endTitle">Fin</h1>
+      <p class="muted" id="endDesc">—</p>
+      <div class="grid3" style="margin-top:10px">
+        <button id="copyCode" class="btn ghost" disabled>📋 Copier le code</button>
+        <button id="again" class="btn">🔁 Rejouer</button>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <button id="help" class="btn ghost" style="width:auto;padding:.5rem .8rem">❓ Règles</button>
+    <button id="quit" class="btn ghost" style="width:auto;padding:.5rem .8rem">Quitter</button>
+  </footer>
+</div>
+
+<dialog id="helpdlg" style="max-width:560px;width:92%;border:1px solid #26307a;border-radius:12px;background:linear-gradient(180deg,rgba(22,26,72,.98),rgba(12,14,38,.98));color:var(--text)">
+  <div style="padding:14px">
+    <h3 style="margin:.2rem 0 .4rem;text-shadow:var(--glow-cyan)">Règles</h3>
+    <ul>
+      <li>Une énigme à la fois. Entre le <b>résultat exact</b>.</li>
+      <li>Durées : 30s (N1) • 60s (N2) • 120s (N3).</li>
+      <li>Quitter l’écran (app/onglet) = <b>défaite</b>.</li>
+      <li>Points : +1/s pendant la partie, +10 par bonne réponse. Les points cumulés sont sauvegardés.</li>
+    </ul>
+    <div style="text-align:right"><button id="closeHelp" class="btn" style="width:auto;padding:.5rem .8rem">OK</button></div>
+  </div>
+</dialog>
 
 <script>
 (()=>{'use strict';
-  // ---- State ----
-  let code = [];      // résultats attendus (entiers)
-  let exprs = [];     // expressions affichées
-  let answers = [];   // réponses joueur (null / nombre)
-  let startedAt = 0;  // ms
-  let totalTime = 0;  // ms
-  let running = false;
+  // ----- State -----
+  let code=[], exprs=[], answers=[];
+  let idx=0, startedAt=0, totalTime=0, running=false;
   let points = Number(localStorage.getItem('cb_points')||0);
 
-  const pointsEl = document.getElementById('points');
+  // ----- UI refs -----
   const timeEl = document.getElementById('time');
-  const levelEl = document.getElementById('level');
-  const progressEl = document.getElementById('progress');
-  const statusBadge = document.getElementById('status');
-  const gameCard = document.getElementById('gameCard');
-  const slotsEl = document.getElementById('slots');
-  const cluesArea = document.getElementById('cluesArea');
-  const copyBtn = document.getElementById('copyCodeBtn');
-  const revealBtn = document.getElementById('revealBtn');
+  const levelEl= document.getElementById('level');
+  const pointsEl=document.getElementById('points');
+  const progressEl=document.getElementById('progress');
 
+  const scrLevel=document.getElementById('screen-level');
+  const scrPlay =document.getElementById('screen-play');
+  const scrEnd  =document.getElementById('screen-end');
+
+  const dots = document.getElementById('dots');
+  const expr = document.getElementById('expr');
+  const answer = document.getElementById('answer');
+  const feedback = document.getElementById('feedback');
+  const btnValidate = document.getElementById('validate');
+  const btnNext = document.getElementById('next');
+
+  const endTitle = document.getElementById('endTitle');
+  const endDesc = document.getElementById('endDesc');
+  const btnCopy = document.getElementById('copyCode');
+  const btnAgain= document.getElementById('again');
+
+  const help = document.getElementById('help');
+  const helpdlg = document.getElementById('helpdlg');
+  const closeHelp = document.getElementById('closeHelp');
+  const btnQuit = document.getElementById('quit');
+
+  // ----- Helpers -----
   pointsEl.textContent = points;
-  function savePoints(v){ points = Math.max(0, Math.floor(v)); localStorage.setItem('cb_points', points); pointsEl.textContent = points; updateRewards(); }
-  function updateRewards(){
-    document.querySelectorAll('[data-need]').forEach(b=>{
-      const need = Number(b.dataset.need||0);
-      b.classList.toggle('on', points>=need);
-    });
-  }
-  updateRewards();
-  const pad = n=>String(n).padStart(2,'0');
-  const fmt = ms=>{ const s=Math.max(0,Math.floor(ms/1000)); return pad(Math.floor(s/60))+':'+pad(s%60); };
-  const rint = (a,b)=> Math.floor(Math.random()*(b-a+1))+a;
+  function savePoints(v){ points=Math.max(0,Math.floor(v)); localStorage.setItem('cb_points',points); pointsEl.textContent=points; }
+  const pad=n=>String(n).padStart(2,'0');
+  const fmt=ms=>{const s=Math.max(0,Math.floor(ms/1000)); return pad(Math.floor(s/60))+':'+pad(s%60);};
+  const rint=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
 
-  // ---- Génération de calculs (entiers) ----
-  // On choisit des expressions qui donnent toujours un entier raisonnable.
+  // Génère une expression entière un peu “classe”
   function makeOne(){
-    const type = rint(1,6);
-    let a,b,c,res,txt;
-    switch(type){
-      case 1: // (a × b) + c
-        a=rint(2,12); b=rint(2,9); c=rint(3,30);
-        res = a*b + c; txt = `(${a} × ${b}) + ${c}`;
-        break;
-      case 2: // (a + b) × c
-        a=rint(5,40); b=rint(5,40); c=rint(2,6);
-        res = (a+b)*c; txt = `(${a} + ${b}) × ${c}`;
-        break;
-      case 3: // a × b − c
-        a=rint(4,20); b=rint(3,9); c=rint(5,40);
-        res = a*b - c; txt = `${a} × ${b} − ${c}`;
-        break;
-      case 4: // (a×c) ÷ c + b  (division entière garantie)
-        c=rint(2,9); a=rint(5,20); b=rint(1,30);
-        res = a + b; txt = `(${a*c} ÷ ${c}) + ${b}`;
-        break;
-      case 5: // (a − b) × c
-        a=rint(20,90); b=rint(5,19); c=rint(2,7);
-        res = (a-b)*c; txt = `(${a} − ${b}) × ${c}`;
-        break;
-      case 6: // (a + b + c)
-        a=rint(10,70); b=rint(10,70); c=rint(10,70);
-        res = a+b+c; txt = `${a} + ${b} + ${c}`;
-        break;
+    const t=rint(1,6); let a,b,c,res,txt;
+    switch(t){
+      case 1: a=rint(2,12); b=rint(2,9); c=rint(3,30); res=a*b+c; txt=`(${a} × ${b}) + ${c}`; break;
+      case 2: a=rint(5,40); b=rint(5,40); c=rint(2,6); res=(a+b)*c; txt=`(${a} + ${b}) × ${c}`; break;
+      case 3: a=rint(4,20); b=rint(3,9); c=rint(5,40); res=a*b-c; txt=`${a} × ${b} − ${c}`; break;
+      case 4: c=rint(2,9); a=rint(5,20); b=rint(1,30); res=a+b; txt=`(${a*c} ÷ ${c}) + ${b}`; break;
+      case 5: a=rint(20,90); b=rint(5,19); c=rint(2,7); res=(a-b)*c; txt=`(${a} − ${b}) × ${c}`; break;
+      default: a=rint(10,70); b=rint(10,70); c=rint(10,70); res=a+b+c; txt=`${a} + ${b} + ${c}`;
     }
-    return {txt, res};
+    return {txt,res};
   }
 
   function makePuzzle(len){
-    code = []; exprs = []; answers = Array(len).fill(null);
-    for(let i=0;i<len;i++){ const p = makeOne(); code.push(p.res); exprs.push(p.txt); }
+    code=[]; exprs=[]; answers=Array(len).fill(null);
+    for(let i=0;i<len;i++){ const p=makeOne(); code.push(p.res); exprs.push(p.txt); }
   }
 
-  function renderPuzzle(){
-    // slots haut
-    slotsEl.innerHTML = '';
-    code.forEach((_,i)=>{
-      const s = document.createElement('div');
-      s.className = 'slot';
-      const ok = (answers[i] !== null && Number(answers[i]) === code[i]);
-      if (ok) s.classList.add('found');
-      s.textContent = (answers[i] ?? '…');
-      s.title = 'Position '+(i+1);
-      slotsEl.appendChild(s);
-    });
-
-    // liste des calculs
-    cluesArea.innerHTML = '';
-    code.forEach((_,i)=>{
-      const card = document.createElement('div'); card.className='card';
-      const h = document.createElement('div'); h.className='title'; h.textContent='Calcul #'+(i+1);
-      const p = document.createElement('div'); p.className='clue'; p.textContent = exprs[i];
-      const inputRow = document.createElement('div'); inputRow.className='input-row';
-      const inp = document.createElement('input'); inp.type='number'; inp.inputMode='numeric'; inp.placeholder='Résultat exact';
-      if (answers[i]!==null) inp.value = answers[i];
-      const btn = document.createElement('button'); btn.className='btn'; btn.textContent='Valider';
-      const res = document.createElement('span'); res.style.minWidth='140px'; res.style.fontWeight='800';
-
-      // aide : keypad mobile -> rester sur l'écran
-      inp.addEventListener('focus', ()=> { /* rien, mais on évite d'ouvrir de nouveaux écrans */ });
-
-      btn.addEventListener('click', ()=>{
-        const v = Number(inp.value);
-        if (Number.isNaN(v)){ res.textContent='Entre un nombre'; res.className='ko'; return; }
-        answers[i] = v;
-        const ok = (v === code[i]);
-        res.textContent = ok ? 'Correct ✅ (+10)' : 'Raté ❌';
-        res.className = ok ? 'ok' : 'ko';
-        if (ok) savePoints(points + 10);
-        renderPuzzle();
-        checkWin();
-      });
-
-      inputRow.append(inp, btn, res);
-      card.append(h, p, inputRow);
-      cluesArea.appendChild(card);
-    });
-
-    const found = answers.filter((v,i)=> Number(v)===code[i]).length;
-    progressEl.textContent = found+' / '+code.length;
-    copyBtn.disabled = !answers.every((v,i)=> Number(v)===code[i]);
-    revealBtn.disabled = false;
+  function renderDots(){
+    dots.innerHTML='';
+    for(let i=0;i<code.length;i++){
+      const d=document.createElement('div');
+      d.className='dot'+(i<=idx?' on':'');
+      dots.appendChild(d);
+    }
   }
 
-  // ---- Démarrage / timers ----
+  function showStep(){
+    renderDots();
+    expr.textContent = exprs[idx];
+    answer.value = answers[idx]??'';
+    feedback.textContent='';
+    feedback.className='muted';
+    btnValidate.style.display='block';
+    btnNext.style.display='none';
+    answer.focus({preventScroll:true});
+    progressEl.textContent = (idx)+'/'+code.length;
+  }
+
   function start(mode){
-    const conf = mode==='easy' ? {len:3, secs:30, label:'N1 (3)'} :
-                  mode==='med' ? {len:5, secs:60, label:'N2 (5)'} :
-                                 {len:10,secs:120,label:'N3 (10)'};
+    const conf = mode==='easy'?{len:3,secs:30,label:'N1'}
+               : mode==='med' ?{len:5,secs:60,label:'N2'}
+               :               {len:10,secs:120,label:'N3'};
     levelEl.textContent = conf.label;
-    totalTime = conf.secs*1000;
-    startedAt = performance.now();
     makePuzzle(conf.len);
-    renderPuzzle();
-    gameCard.style.display='block';
-    running = true;
+    idx=0; startedAt=performance.now(); totalTime=conf.secs*1000; running=true;
+    scrLevel.style.display='none'; scrEnd.style.display='none'; scrPlay.style.display='block';
+    progressEl.textContent = '0/'+code.length;
+    btnCopy.disabled=true;
+    showStep();
     tick();
   }
 
   function tick(){
-    if (!running) return;
-    const now = performance.now();
-    const remain = Math.max(0, totalTime - (now - startedAt));
+    if(!running) return;
+    const remain=Math.max(0,totalTime-(performance.now()-startedAt));
     timeEl.textContent = fmt(remain);
-    // points +1/s
-    savePoints(points + (1/60));
-    if (remain<=0){ lose('⏹️ Temps écoulé'); return; }
+    savePoints(points+(1/60)); // +1/s
+    if(remain<=0){ return lose('⏹️ Temps écoulé'); }
     requestAnimationFrame(tick);
   }
 
-  function checkWin(){
-    const ok = answers.every((v,i)=> Number(v)===code[i]);
-    if (ok){
-      running = false;
-      statusBadge.textContent = '✅ Code trouvé !';
+  function check(){
+    const v = Number(answer.value);
+    if(Number.isNaN(v)){ feedback.textContent='Entre un nombre'; feedback.className='ko'; return; }
+    const ok = (v===code[idx]);
+    answers[idx]=v;
+    if(ok){
+      feedback.textContent='Correct ✅ (+10)'; feedback.className='ok';
+      savePoints(points+10);
+      btnValidate.style.display='none'; btnNext.style.display='block';
+    }else{
+      feedback.textContent='Raté ❌ Réessaie'; feedback.className='ko';
     }
   }
 
-  function lose(reason){
-    running = false;
-    statusBadge.textContent = reason || '❌ Perdu';
-    // Option: désactiver tous les inputs
-    document.querySelectorAll('input,button').forEach(el=>{
-      if(!['restartBtn','helpBtn','closeHelp'].includes(el.id)) el.disabled = true;
-    });
+  function next(){
+    if(idx<code.length-1){ idx++; showStep(); }
+    else { win(); }
   }
 
-  // ---- Défaite si l’utilisateur quitte l’écran ----
-  document.addEventListener('visibilitychange', ()=>{
-    if (running && document.hidden) lose('❌ Perdu (écran quitté)');
-  });
-  // iOS/Android focus-perd: on ajoute blur fenêtre
+  function win(){
+    running=false;
+    scrPlay.style.display='none'; scrEnd.style.display='block';
+    endTitle.textContent='✅ Code trouvé !';
+    endDesc.textContent='Code : '+code.join(' - ');
+    progressEl.textContent = code.length+'/'+code.length;
+    btnCopy.disabled=false;
+  }
+
+  function lose(reason){
+    running=false;
+    scrPlay.style.display='none'; scrEnd.style.display='block';
+    endTitle.textContent=reason||'❌ Perdu';
+    endDesc.textContent='Code était : '+code.join(' - ');
+    btnCopy.disabled=false;
+  }
+
+  // Quitter l’écran = perdu
+  document.addEventListener('visibilitychange', ()=>{ if(running && document.hidden) lose('❌ Perdu (écran quitté)'); });
   window.addEventListener('blur', ()=>{ if(running) lose('❌ Perdu (écran quitté)'); });
 
-  // ---- UI events ----
-  document.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', ()=> start(b.dataset.mode)));
-  document.getElementById('restartBtn').addEventListener('click', ()=> location.reload());
-  document.getElementById('helpBtn').addEventListener('click', ()=> document.getElementById('help').showModal());
-  document.getElementById('closeHelp').addEventListener('click', ()=> document.getElementById('help').close());
-  document.getElementById('copyCodeBtn').addEventListener('click', async ()=>{
-    const str = code.join('-');
-    try{ await navigator.clipboard.writeText(str); const b = document.getElementById('copyCodeBtn'); b.textContent='Copié ✅'; setTimeout(()=>b.textContent='📋 Copier le code', 1200);}catch{}
+  // Events
+  document.querySelectorAll('[data-mode]').forEach(b=> b.addEventListener('click', ()=> start(b.dataset.mode)));
+  document.getElementById('validate').addEventListener('click', check);
+  document.getElementById('next').addEventListener('click', next);
+  answer.addEventListener('keydown', e=>{ if(e.key==='Enter') (btnValidate.style.display!=='none'?check():next()); });
+
+  document.getElementById('again').addEventListener('click', ()=> location.reload());
+  document.getElementById('copyCode').addEventListener('click', async()=>{
+    try{ await navigator.clipboard.writeText(code.join('-')); btnCopy.textContent='Copié ✅'; setTimeout(()=>btnCopy.textContent='📋 Copier le code',1200);}catch{}
   });
-  document.getElementById('revealBtn').addEventListener('click', ()=>{ alert('Code (démo): '+code.join('-')); });
+  help.addEventListener('click', ()=> helpdlg.showModal());
+  closeHelp.addEventListener('click', ()=> helpdlg.close());
+  btnQuit.addEventListener('click', ()=> lose('👋 Abandon'));
 
 })();</script>
 </body>
