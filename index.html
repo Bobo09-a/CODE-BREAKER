@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Code Breaker Futuriste</title>
+<style>
+  body {
+    margin: 0;
+    font-family: 'Orbitron', sans-serif;
+    background: radial-gradient(circle at center, #0a0f1f 0%, #000 100%);
+    color: #0ff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+  }
+  #game-container {
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid #0ff;
+    border-radius: 15px;
+    padding: 20px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 0 25px #0ff;
+    text-align: center;
+  }
+  h1 {
+    color: #0ff;
+    text-shadow: 0 0 10px #0ff;
+  }
+  button {
+    background: transparent;
+    border: 2px solid #0ff;
+    color: #0ff;
+    padding: 10px 20px;
+    margin: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: all 0.2s ease-in-out;
+  }
+  button:hover {
+    background: #0ff;
+    color: #000;
+    box-shadow: 0 0 15px #0ff;
+  }
+  .enigme {
+    background: rgba(0,255,255,0.1);
+    padding: 10px;
+    border: 1px solid #0ff;
+    border-radius: 8px;
+    margin: 10px 0;
+  }
+  input {
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid #0ff;
+    color: #0ff;
+    padding: 5px;
+    border-radius: 5px;
+    width: 80px;
+    text-align: center;
+  }
+  #timer, #points, #rewards {
+    margin: 10px 0;
+    font-size: 1.2em;
+  }
+  .badge {
+    display: inline-block;
+    background: #0ff;
+    color: #000;
+    padding: 5px 10px;
+    margin: 5px;
+    border-radius: 5px;
+    font-weight: bold;
+    box-shadow: 0 0 10px #0ff;
+  }
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
+</head>
+<body>
+<div id="game-container">
+  <h1>Code Breaker</h1>
+  <div id="menu">
+    <p>Choisis un niveau :</p>
+    <button onclick="startGame(3, 600)">Niveau 1 - 3 chiffres (10 min)</button>
+    <button onclick="startGame(5, 900)">Niveau 2 - 5 chiffres (15 min)</button>
+    <button onclick="startGame(10, 1200)">Niveau 3 - 10 chiffres (20 min)</button>
+  </div>
+  <div id="game" style="display:none;">
+    <div id="timer"></div>
+    <div id="points"></div>
+    <div id="enigmes"></div>
+    <button onclick="checkCode()">Valider le code</button>
+  </div>
+  <div id="rewards"></div>
+</div>
+<script>
+  let totalPoints = parseInt(localStorage.getItem('totalPoints') || '0');
+  let codeSecret = [];
+  let timerInterval, pointsInterval;
+  let tempsRestant = 0;
+  let enigmes = [];
+  let points = 0;
+
+  const rewards = [
+    { threshold: 500, label: "Badge Bronze" },
+    { threshold: 1500, label: "Badge Argent" },
+    { threshold: 5000, label: "Badge Or" }
+  ];
+
+  function generateEnigme(chiffre) {
+    const a = Math.floor(Math.random()*10);
+    const b = Math.floor(Math.random()*10);
+    const sum = a + b;
+    return { question: `${a} + ${b} = ? (Indice: résultat mod 10)`, answer: (sum % 10) };
+  }
+
+  function startGame(nbChiffres, duree) {
+    codeSecret = [];
+    enigmes = [];
+    for (let i = 0; i < nbChiffres; i++) {
+      const chiffre = Math.floor(Math.random()*10);
+      codeSecret.push(chiffre);
+      enigmes.push(generateEnigme(chiffre));
+    }
+    tempsRestant = duree;
+    points = 0;
+    document.getElementById('menu').style.display = 'none';
+    document.getElementById('game').style.display = 'block';
+    afficherEnigmes();
+    updateTimer();
+    timerInterval = setInterval(() => {
+      tempsRestant--;
+      points++;
+      totalPoints++;
+      updateTimer();
+      updatePoints();
+      if (tempsRestant <= 0) {
+        clearInterval(timerInterval);
+        clearInterval(pointsInterval);
+        alert("Temps écoulé !");
+        endGame();
+      }
+    }, 1000);
+    updatePoints();
+  }
+
+  function afficherEnigmes() {
+    const enigmesDiv = document.getElementById('enigmes');
+    enigmesDiv.innerHTML = '';
+    enigmes.forEach((e, index) => {
+      enigmesDiv.innerHTML += `<div class='enigme'>${e.question}<br><input type='number' id='rep${index}' min='0' max='9'></div>`;
+    });
+  }
+
+  function updateTimer() {
+    document.getElementById('timer').innerText = `⏳ Temps restant : ${Math.floor(tempsRestant/60)}:${('0'+tempsRestant%60).slice(-2)}`;
+  }
+
+  function updatePoints() {
+    localStorage.setItem('totalPoints', totalPoints);
+    document.getElementById('points').innerText = `⭐ Points : ${points} (Total: ${totalPoints})`;
+    updateRewards();
+  }
+
+  function updateRewards() {
+    let rewardsHTML = '';
+    rewards.forEach(r => {
+      if (totalPoints >= r.threshold) {
+        rewardsHTML += `<div class="badge">${r.label}</div>`;
+      }
+    });
+    document.getElementById('rewards').innerHTML = rewardsHTML;
+  }
+
+  function checkCode() {
+    let found = true;
+    for (let i = 0; i < codeSecret.length; i++) {
+      const val = parseInt(document.getElementById('rep'+i).value);
+      if (val === codeSecret[i]) {
+        points += 10;
+        totalPoints += 10;
+      } else {
+        found = false;
+      }
+    }
+    updatePoints();
+    if (found) {
+      alert("💥 Code désamorcé !");
+      endGame();
+    } else {
+      alert("❌ Code incorrect, réessaie.");
+    }
+  }
+
+  function endGame() {
+    clearInterval(timerInterval);
+    document.getElementById('menu').style.display = 'block';
+    document.getElementById('game').style.display = 'none';
+  }
+
+  updateRewards();
+</script>
+</body>
+</html>
