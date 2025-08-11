@@ -1,207 +1,359 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Code Breaker Futuriste</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Code Bomb — Neo (v2)</title>
 <style>
-  body {
-    margin: 0;
-    font-family: 'Orbitron', sans-serif;
-    background: radial-gradient(circle at center, #0a0f1f 0%, #000 100%);
-    color: #0ff;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    overflow: hidden;
+  :root{
+    --bg1:#050612; --bg2:#090b1e;
+    --panel:#0d1027; --panel2:#12163a;
+    --text:#e6f7ff; --muted:#9fe3ff;
+    --cyan:#00e5ff; --magenta:#ff3dff; --green:#00ffa3;
+    --border:#1b2154;
+    --glow-cyan: 0 0 12px rgba(0,229,255,.45), 0 0 28px rgba(0,229,255,.25);
+    --glow-mag: 0 0 12px rgba(255,61,255,.45), 0 0 28px rgba(255,61,255,.25);
+    --glow-green: 0 0 12px rgba(0,255,163,.45), 0 0 28px rgba(0,255,163,.25);
   }
-  #game-container {
-    background: rgba(0, 0, 0, 0.8);
-    border: 2px solid #0ff;
-    border-radius: 15px;
-    padding: 20px;
-    width: 90%;
-    max-width: 500px;
-    box-shadow: 0 0 25px #0ff;
-    text-align: center;
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; color:var(--text);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    background:
+      radial-gradient(1200px 800px at 70% -10%, #15205a 0, transparent 60%),
+      radial-gradient(900px 600px at 0% 110%, #3a105a 0, transparent 60%),
+      linear-gradient(180deg,var(--bg1),var(--bg2));
+    display:flex; align-items:center; justify-content:center; overflow:hidden;
   }
-  h1 {
-    color: #0ff;
-    text-shadow: 0 0 10px #0ff;
+  .wrap{
+    width:min(1100px,96vw); height:min(760px,94vh); position:relative;
+    border:1px solid var(--border); border-radius:16px;
+    background:linear-gradient(180deg, rgba(15,18,45,.92), rgba(5,7,20,.92));
+    box-shadow:0 20px 60px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.03);
+    overflow:hidden;
   }
-  button {
-    background: transparent;
-    border: 2px solid #0ff;
-    color: #0ff;
-    padding: 10px 20px;
-    margin: 10px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1em;
-    transition: all 0.2s ease-in-out;
+  header{
+    position:absolute; inset:12px 12px auto 12px; z-index:3; display:flex; gap:10px; align-items:center; justify-content:space-between;
   }
-  button:hover {
-    background: #0ff;
-    color: #000;
-    box-shadow: 0 0 15px #0ff;
+  .hud{display:flex;gap:10px;flex-wrap:wrap}
+  .stat{
+    padding:.5rem .7rem; background:linear-gradient(180deg, rgba(18,22,58,.8), rgba(10,12,34,.8));
+    border:1px solid var(--border); border-radius:12px; font-variant-numeric:tabular-nums;
+    box-shadow: var(--glow-cyan);
   }
-  .enigme {
-    background: rgba(0,255,255,0.1);
-    padding: 10px;
-    border: 1px solid #0ff;
-    border-radius: 8px;
-    margin: 10px 0;
+  .btn{
+    appearance:none; border:1px solid var(--border);
+    background:linear-gradient(180deg, rgba(25,31,84,.9), rgba(16,18,48,.9));
+    color:var(--text); border-radius:12px; padding:.65rem 1rem; cursor:pointer; font-weight:800; letter-spacing:.02em;
+    transition:transform .06s ease, box-shadow .2s ease, border-color .2s ease;
   }
-  input {
-    background: rgba(0, 0, 0, 0.7);
-    border: 1px solid #0ff;
-    color: #0ff;
-    padding: 5px;
-    border-radius: 5px;
-    width: 80px;
-    text-align: center;
+  .btn:hover{ transform:translateY(-1px); box-shadow: var(--glow-mag); border-color:#3340aa; }
+  .btn.ghost{ background:transparent; box-shadow:var(--glow-cyan) inset; }
+  main{
+    position:absolute; inset:72px 12px 88px 12px; overflow:auto;
+    border:1px solid var(--border); border-radius:12px;
+    background:linear-gradient(180deg, rgba(10,12,28,.55), rgba(6,8,20,.55));
+    padding:16px;
   }
-  #timer, #points, #rewards {
-    margin: 10px 0;
-    font-size: 1.2em;
+  .grid{display:grid; grid-template-columns: 1fr; gap:12px}
+  .card{
+    background:linear-gradient(180deg, rgba(22,26,72,.96), rgba(12,14,38,.96));
+    border:1px solid var(--border); border-radius:14px; padding:14px;
+    box-shadow: 0 0 0 1px rgba(255,255,255,.02), 0 14px 40px rgba(0,0,0,.25);
   }
-  .badge {
-    display: inline-block;
-    background: #0ff;
-    color: #000;
-    padding: 5px 10px;
-    margin: 5px;
-    border-radius: 5px;
-    font-weight: bold;
-    box-shadow: 0 0 10px #0ff;
+  .title{margin:.1rem 0 .5rem; font-size:20px; text-shadow: var(--glow-mag); color:#eaf1ff}
+  .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+  .code-slots{display:flex; gap:10px; flex-wrap:wrap}
+  .slot{
+    min-width:72px; height:62px; display:grid; place-items:center; font-size:22px; font-weight:900;
+    background:linear-gradient(180deg, #0b0f26, #070a1b);
+    border:1px solid #25307a; border-radius:12px; color:#cfeaff;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.03), 0 10px 26px rgba(0,0,0,.35);
+    padding:0 .5rem;
+  }
+  .slot.found{border-color:#21cfa1; color:#b3ffe7; box-shadow: var(--glow-green), inset 0 0 0 1px rgba(255,255,255,.06)}
+  .clue{color:var(--muted); font-size:15px}
+  .input-row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+  input[type="number"], input[type="text"]{
+    width:120px; padding:.6rem .65rem; background:linear-gradient(180deg,#070a1b,#0b0f26);
+    color:var(--text); border:1px solid #2a3688; border-radius:12px; font-weight:700;
+    box-shadow: inset var(--glow-cyan);
+  }
+  .ok{color:var(--green)} .ko{color:#ff4d6d}
+  footer{
+    position:absolute; inset:auto 12px 12px 12px; z-index:3; display:flex; gap:12px; align-items:center; justify-content:space-between;
+  }
+  #rewards{display:flex; gap:10px; flex-wrap:wrap}
+  .badge{padding:.4rem .65rem; border-radius:999px; background:linear-gradient(180deg,#070a1b,#0b0f26); border:1px solid #2a3688; font-size:13px; box-shadow: inset var(--glow-mag)}
+  .badge.on{background:rgba(0,255,163,.12); border-color:#1fbf92; color:var(--green); box-shadow: var(--glow-green) inset}
+  dialog::backdrop{background:rgba(0,0,0,.45);}
+  @media (max-width:700px){
+    .slot{min-width:64px;height:58px}
+    input[type="number"], input[type="text"]{width:110px}
   }
 </style>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
 </head>
 <body>
-<div id="game-container">
-  <h1>Code Breaker</h1>
-  <div id="menu">
-    <p>Choisis un niveau :</p>
-    <button onclick="startGame(3, 600)">Niveau 1 - 3 chiffres (10 min)</button>
-    <button onclick="startGame(5, 900)">Niveau 2 - 5 chiffres (15 min)</button>
-    <button onclick="startGame(10, 1200)">Niveau 3 - 10 chiffres (20 min)</button>
+  <div class="wrap">
+    <header>
+      <div class="hud">
+        <div class="stat">⏱️ Temps: <b id="time">00:30</b></div>
+        <div class="stat">🎯 Niveau: <b id="level">-</b></div>
+        <div class="stat">⭐ Points: <b id="points">0</b></div>
+        <div class="stat">🧩 Avancée: <b id="progress">0</b></div>
+      </div>
+      <div class="hud">
+        <button class="btn" id="helpBtn">❓ Règles</button>
+        <button class="btn" id="restartBtn">🔁 Recommencer</button>
+      </div>
+    </header>
+
+    <main>
+      <div class="grid">
+        <div class="card">
+          <div class="title">Choisir un tournoi</div>
+          <div class="row">
+            <button class="btn" data-mode="easy">Niveau 1 — 3 chiffres • 30 s</button>
+            <button class="btn" data-mode="med">Niveau 2 — 5 chiffres • 60 s</button>
+            <button class="btn" data-mode="hard">Niveau 3 — 10 chiffres • 120 s</button>
+          </div>
+          <p class="clue" style="margin:.4rem 0 0">Quitter l’écran (changer d’onglet/app) = <b>défaite immédiate</b>.</p>
+        </div>
+
+        <div class="card" id="gameCard" style="display:none">
+          <div class="title">Désamorce la bombe (résultat exact)</div>
+          <div class="row" style="justify-content:space-between">
+            <div class="code-slots" id="slots"></div>
+            <div class="row">
+              <div class="badge" id="status">En cours...</div>
+            </div>
+          </div>
+          <hr style="border:none;border-top:1px solid #26307a; opacity:.6; margin:10px 0">
+          <div id="cluesArea"></div>
+        </div>
+
+        <div class="card">
+          <div class="title">Récompenses</div>
+          <div id="rewards">
+            <span class="badge" data-need="500">🎖️ 500 pts</span>
+            <span class="badge" data-need="1500">🏅 1500 pts</span>
+            <span class="badge" data-need="5000">🏆 5000 pts</span>
+          </div>
+          <p class="clue">Points : +1/s pendant la partie et +10 par chiffre correct. (Cumulés & sauvegardés en local.)</p>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <div class="row">
+        <button class="btn ghost" id="copyCodeBtn" disabled>📋 Copier le code</button>
+        <button class="btn" id="revealBtn" disabled>👀 Révéler (démo)</button>
+      </div>
+      <div class="clue">Ne quitte pas l’écran…</div>
+    </footer>
   </div>
-  <div id="game" style="display:none;">
-    <div id="timer"></div>
-    <div id="points"></div>
-    <div id="enigmes"></div>
-    <button onclick="checkCode()">Valider le code</button>
-  </div>
-  <div id="rewards"></div>
-</div>
+
+  <!-- Aide -->
+  <dialog id="help" style="max-width:640px;width:92%;border:1px solid #26307a;border-radius:12px;background:linear-gradient(180deg,rgba(22,26,72,.98),rgba(12,14,38,.98));color:var(--text)">
+    <div style="padding:14px">
+      <h3 style="margin:.2rem 0 .4rem;text-shadow:var(--glow-cyan)">Règles</h3>
+      <ul>
+        <li>Résous les calculs et entre le <b>résultat exact</b>.</li>
+        <li>Durées : 30s (N1) • 60s (N2) • 120s (N3).</li>
+        <li>Si tu quittes l’écran (app/onglet), tu <b>perds</b> la partie.</li>
+        <li>Points : +1/s +10 par chiffre correct. Récompenses à 500 / 1500 / 5000.</li>
+      </ul>
+      <div class="row" style="justify-content:flex-end"><button class="btn" id="closeHelp">OK</button></div>
+    </div>
+  </dialog>
+
 <script>
-  let totalPoints = parseInt(localStorage.getItem('totalPoints') || '0');
-  let codeSecret = [];
-  let timerInterval, pointsInterval;
-  let tempsRestant = 0;
-  let enigmes = [];
-  let points = 0;
+(()=>{'use strict';
+  // ---- State ----
+  let code = [];      // résultats attendus (entiers)
+  let exprs = [];     // expressions affichées
+  let answers = [];   // réponses joueur (null / nombre)
+  let startedAt = 0;  // ms
+  let totalTime = 0;  // ms
+  let running = false;
+  let points = Number(localStorage.getItem('cb_points')||0);
 
-  const rewards = [
-    { threshold: 500, label: "Badge Bronze" },
-    { threshold: 1500, label: "Badge Argent" },
-    { threshold: 5000, label: "Badge Or" }
-  ];
+  const pointsEl = document.getElementById('points');
+  const timeEl = document.getElementById('time');
+  const levelEl = document.getElementById('level');
+  const progressEl = document.getElementById('progress');
+  const statusBadge = document.getElementById('status');
+  const gameCard = document.getElementById('gameCard');
+  const slotsEl = document.getElementById('slots');
+  const cluesArea = document.getElementById('cluesArea');
+  const copyBtn = document.getElementById('copyCodeBtn');
+  const revealBtn = document.getElementById('revealBtn');
 
-  function generateEnigme(chiffre) {
-    const a = Math.floor(Math.random()*10);
-    const b = Math.floor(Math.random()*10);
-    const sum = a + b;
-    return { question: `${a} + ${b} = ? (Indice: résultat mod 10)`, answer: (sum % 10) };
-  }
-
-  function startGame(nbChiffres, duree) {
-    codeSecret = [];
-    enigmes = [];
-    for (let i = 0; i < nbChiffres; i++) {
-      const chiffre = Math.floor(Math.random()*10);
-      codeSecret.push(chiffre);
-      enigmes.push(generateEnigme(chiffre));
-    }
-    tempsRestant = duree;
-    points = 0;
-    document.getElementById('menu').style.display = 'none';
-    document.getElementById('game').style.display = 'block';
-    afficherEnigmes();
-    updateTimer();
-    timerInterval = setInterval(() => {
-      tempsRestant--;
-      points++;
-      totalPoints++;
-      updateTimer();
-      updatePoints();
-      if (tempsRestant <= 0) {
-        clearInterval(timerInterval);
-        clearInterval(pointsInterval);
-        alert("Temps écoulé !");
-        endGame();
-      }
-    }, 1000);
-    updatePoints();
-  }
-
-  function afficherEnigmes() {
-    const enigmesDiv = document.getElementById('enigmes');
-    enigmesDiv.innerHTML = '';
-    enigmes.forEach((e, index) => {
-      enigmesDiv.innerHTML += `<div class='enigme'>${e.question}<br><input type='number' id='rep${index}' min='0' max='9'></div>`;
+  pointsEl.textContent = points;
+  function savePoints(v){ points = Math.max(0, Math.floor(v)); localStorage.setItem('cb_points', points); pointsEl.textContent = points; updateRewards(); }
+  function updateRewards(){
+    document.querySelectorAll('[data-need]').forEach(b=>{
+      const need = Number(b.dataset.need||0);
+      b.classList.toggle('on', points>=need);
     });
   }
-
-  function updateTimer() {
-    document.getElementById('timer').innerText = `⏳ Temps restant : ${Math.floor(tempsRestant/60)}:${('0'+tempsRestant%60).slice(-2)}`;
-  }
-
-  function updatePoints() {
-    localStorage.setItem('totalPoints', totalPoints);
-    document.getElementById('points').innerText = `⭐ Points : ${points} (Total: ${totalPoints})`;
-    updateRewards();
-  }
-
-  function updateRewards() {
-    let rewardsHTML = '';
-    rewards.forEach(r => {
-      if (totalPoints >= r.threshold) {
-        rewardsHTML += `<div class="badge">${r.label}</div>`;
-      }
-    });
-    document.getElementById('rewards').innerHTML = rewardsHTML;
-  }
-
-  function checkCode() {
-    let found = true;
-    for (let i = 0; i < codeSecret.length; i++) {
-      const val = parseInt(document.getElementById('rep'+i).value);
-      if (val === codeSecret[i]) {
-        points += 10;
-        totalPoints += 10;
-      } else {
-        found = false;
-      }
-    }
-    updatePoints();
-    if (found) {
-      alert("💥 Code désamorcé !");
-      endGame();
-    } else {
-      alert("❌ Code incorrect, réessaie.");
-    }
-  }
-
-  function endGame() {
-    clearInterval(timerInterval);
-    document.getElementById('menu').style.display = 'block';
-    document.getElementById('game').style.display = 'none';
-  }
-
   updateRewards();
-</script>
+  const pad = n=>String(n).padStart(2,'0');
+  const fmt = ms=>{ const s=Math.max(0,Math.floor(ms/1000)); return pad(Math.floor(s/60))+':'+pad(s%60); };
+  const rint = (a,b)=> Math.floor(Math.random()*(b-a+1))+a;
+
+  // ---- Génération de calculs (entiers) ----
+  // On choisit des expressions qui donnent toujours un entier raisonnable.
+  function makeOne(){
+    const type = rint(1,6);
+    let a,b,c,res,txt;
+    switch(type){
+      case 1: // (a × b) + c
+        a=rint(2,12); b=rint(2,9); c=rint(3,30);
+        res = a*b + c; txt = `(${a} × ${b}) + ${c}`;
+        break;
+      case 2: // (a + b) × c
+        a=rint(5,40); b=rint(5,40); c=rint(2,6);
+        res = (a+b)*c; txt = `(${a} + ${b}) × ${c}`;
+        break;
+      case 3: // a × b − c
+        a=rint(4,20); b=rint(3,9); c=rint(5,40);
+        res = a*b - c; txt = `${a} × ${b} − ${c}`;
+        break;
+      case 4: // (a×c) ÷ c + b  (division entière garantie)
+        c=rint(2,9); a=rint(5,20); b=rint(1,30);
+        res = a + b; txt = `(${a*c} ÷ ${c}) + ${b}`;
+        break;
+      case 5: // (a − b) × c
+        a=rint(20,90); b=rint(5,19); c=rint(2,7);
+        res = (a-b)*c; txt = `(${a} − ${b}) × ${c}`;
+        break;
+      case 6: // (a + b + c)
+        a=rint(10,70); b=rint(10,70); c=rint(10,70);
+        res = a+b+c; txt = `${a} + ${b} + ${c}`;
+        break;
+    }
+    return {txt, res};
+  }
+
+  function makePuzzle(len){
+    code = []; exprs = []; answers = Array(len).fill(null);
+    for(let i=0;i<len;i++){ const p = makeOne(); code.push(p.res); exprs.push(p.txt); }
+  }
+
+  function renderPuzzle(){
+    // slots haut
+    slotsEl.innerHTML = '';
+    code.forEach((_,i)=>{
+      const s = document.createElement('div');
+      s.className = 'slot';
+      const ok = (answers[i] !== null && Number(answers[i]) === code[i]);
+      if (ok) s.classList.add('found');
+      s.textContent = (answers[i] ?? '…');
+      s.title = 'Position '+(i+1);
+      slotsEl.appendChild(s);
+    });
+
+    // liste des calculs
+    cluesArea.innerHTML = '';
+    code.forEach((_,i)=>{
+      const card = document.createElement('div'); card.className='card';
+      const h = document.createElement('div'); h.className='title'; h.textContent='Calcul #'+(i+1);
+      const p = document.createElement('div'); p.className='clue'; p.textContent = exprs[i];
+      const inputRow = document.createElement('div'); inputRow.className='input-row';
+      const inp = document.createElement('input'); inp.type='number'; inp.inputMode='numeric'; inp.placeholder='Résultat exact';
+      if (answers[i]!==null) inp.value = answers[i];
+      const btn = document.createElement('button'); btn.className='btn'; btn.textContent='Valider';
+      const res = document.createElement('span'); res.style.minWidth='140px'; res.style.fontWeight='800';
+
+      // aide : keypad mobile -> rester sur l'écran
+      inp.addEventListener('focus', ()=> { /* rien, mais on évite d'ouvrir de nouveaux écrans */ });
+
+      btn.addEventListener('click', ()=>{
+        const v = Number(inp.value);
+        if (Number.isNaN(v)){ res.textContent='Entre un nombre'; res.className='ko'; return; }
+        answers[i] = v;
+        const ok = (v === code[i]);
+        res.textContent = ok ? 'Correct ✅ (+10)' : 'Raté ❌';
+        res.className = ok ? 'ok' : 'ko';
+        if (ok) savePoints(points + 10);
+        renderPuzzle();
+        checkWin();
+      });
+
+      inputRow.append(inp, btn, res);
+      card.append(h, p, inputRow);
+      cluesArea.appendChild(card);
+    });
+
+    const found = answers.filter((v,i)=> Number(v)===code[i]).length;
+    progressEl.textContent = found+' / '+code.length;
+    copyBtn.disabled = !answers.every((v,i)=> Number(v)===code[i]);
+    revealBtn.disabled = false;
+  }
+
+  // ---- Démarrage / timers ----
+  function start(mode){
+    const conf = mode==='easy' ? {len:3, secs:30, label:'N1 (3)'} :
+                  mode==='med' ? {len:5, secs:60, label:'N2 (5)'} :
+                                 {len:10,secs:120,label:'N3 (10)'};
+    levelEl.textContent = conf.label;
+    totalTime = conf.secs*1000;
+    startedAt = performance.now();
+    makePuzzle(conf.len);
+    renderPuzzle();
+    gameCard.style.display='block';
+    running = true;
+    tick();
+  }
+
+  function tick(){
+    if (!running) return;
+    const now = performance.now();
+    const remain = Math.max(0, totalTime - (now - startedAt));
+    timeEl.textContent = fmt(remain);
+    // points +1/s
+    savePoints(points + (1/60));
+    if (remain<=0){ lose('⏹️ Temps écoulé'); return; }
+    requestAnimationFrame(tick);
+  }
+
+  function checkWin(){
+    const ok = answers.every((v,i)=> Number(v)===code[i]);
+    if (ok){
+      running = false;
+      statusBadge.textContent = '✅ Code trouvé !';
+    }
+  }
+
+  function lose(reason){
+    running = false;
+    statusBadge.textContent = reason || '❌ Perdu';
+    // Option: désactiver tous les inputs
+    document.querySelectorAll('input,button').forEach(el=>{
+      if(!['restartBtn','helpBtn','closeHelp'].includes(el.id)) el.disabled = true;
+    });
+  }
+
+  // ---- Défaite si l’utilisateur quitte l’écran ----
+  document.addEventListener('visibilitychange', ()=>{
+    if (running && document.hidden) lose('❌ Perdu (écran quitté)');
+  });
+  // iOS/Android focus-perd: on ajoute blur fenêtre
+  window.addEventListener('blur', ()=>{ if(running) lose('❌ Perdu (écran quitté)'); });
+
+  // ---- UI events ----
+  document.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', ()=> start(b.dataset.mode)));
+  document.getElementById('restartBtn').addEventListener('click', ()=> location.reload());
+  document.getElementById('helpBtn').addEventListener('click', ()=> document.getElementById('help').showModal());
+  document.getElementById('closeHelp').addEventListener('click', ()=> document.getElementById('help').close());
+  document.getElementById('copyCodeBtn').addEventListener('click', async ()=>{
+    const str = code.join('-');
+    try{ await navigator.clipboard.writeText(str); const b = document.getElementById('copyCodeBtn'); b.textContent='Copié ✅'; setTimeout(()=>b.textContent='📋 Copier le code', 1200);}catch{}
+  });
+  document.getElementById('revealBtn').addEventListener('click', ()=>{ alert('Code (démo): '+code.join('-')); });
+
+})();</script>
 </body>
 </html>
